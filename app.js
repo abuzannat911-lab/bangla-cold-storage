@@ -85,13 +85,42 @@ class ColdStorageApp {
   // Navigation Logic
   setupNavigation() {
     const navLinks = document.querySelectorAll(".nav-link");
+    const sidebar = document.querySelector(".sidebar");
+    const backdrop = document.getElementById("sidebar-backdrop");
+    const toggleBtn = document.getElementById("menu-toggle-btn");
+
     navLinks.forEach(link => {
       link.addEventListener("click", (e) => {
         e.preventDefault();
         const tab = link.getAttribute("data-tab");
         this.switchTab(tab);
+
+        // Close sidebar on mobile after selecting a tab
+        if (sidebar && sidebar.classList.contains("sidebar-open")) {
+          sidebar.classList.remove("sidebar-open");
+          if (backdrop) backdrop.classList.remove("active");
+        }
       });
     });
+
+    // Mobile menu toggle click handler
+    if (toggleBtn && sidebar) {
+      toggleBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        sidebar.classList.toggle("sidebar-open");
+        if (backdrop) {
+          backdrop.classList.toggle("active");
+        }
+      });
+    }
+
+    // Dismiss sidebar when clicking backdrop
+    if (backdrop && sidebar) {
+      backdrop.addEventListener("click", () => {
+        sidebar.classList.remove("sidebar-open");
+        backdrop.classList.remove("active");
+      });
+    }
   }
 
   switchTab(tabId) {

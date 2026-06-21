@@ -1526,3 +1526,147 @@ h1, h2, h3, h4, h5, h6 {
   25% { transform: translateX(-8px); }
   75% { transform: translateX(8px); }
 }
+
+/* ================= MOBILE RESPONSIVENESS ================= */
+
+/* Sidebar Backdrop Overlay */
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 99;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-backdrop.active {
+  display: block;
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  /* Sidebar Drawer styling */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    height: 100%;
+    z-index: 100;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .sidebar.sidebar-open {
+    left: 0;
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Make toggle button visible */
+  #menu-toggle-btn {
+    display: flex !important;
+  }
+
+  /* Adjust page paddings and headers */
+  .top-header {
+    height: auto !important;
+    min-height: 80px;
+    padding: 16px !important;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  
+  .header-left {
+    justify-content: flex-start;
+  }
+
+  .header-right {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 12px;
+  }
+
+  .sensor-badges {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .content-body {
+    padding: 16px !important;
+  }
+
+  /* Responsive layout grids */
+  .dashboard-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px;
+  }
+
+  .chamber-monitoring-layout {
+    grid-template-columns: 1fr !important;
+    gap: 16px;
+  }
+
+  .table-actions-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .search-box {
+    max-width: 100% !important;
+  }
+
+  .filter-group {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .filter-group select,
+  .filter-group button {
+    flex-grow: 1;
+    width: 100%;
+  }
+
+  /* Scale modal dialogs */
+  .modal-card {
+    width: 92% !important;
+    max-height: 90vh;
+    margin: 20px auto;
+    overflow-y: auto;
+    padding: 20px !important;
+  }
+
+  /* KPI grid gaps */
+  .kpi-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .top-header h1 {
+    font-size: 1.3rem !important;
+  }
+  
+  .login-card {
+    padding: 24px !important;
+    width: 90% !important;
+  }
+
+  .sensor-badges {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+
+  .sensor-badge {
+    justify-content: center;
+  }
+}
+

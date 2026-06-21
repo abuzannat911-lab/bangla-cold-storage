@@ -59,6 +59,7 @@
 
   <!-- App Shell -->
   <div class="app-container">
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
     
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
@@ -133,9 +134,14 @@
       
       <!-- Top Navigation Header -->
       <header class="top-header">
-        <div class="header-left">
-          <h1 id="page-title">Dashboard Overview</h1>
-          <p id="page-subtitle" class="text-muted">Welcome back, Abu! Here is what's happening today.</p>
+        <div class="header-left" style="display: flex; align-items: center; gap: 16px;">
+          <button class="btn btn-icon btn-menu" id="menu-toggle-btn" style="display: none; background: transparent; border: none; color: var(--text-primary); cursor: pointer; padding: 4px; align-items: center; justify-content: center;">
+            <i data-lucide="menu" style="width: 20px; height: 20px;"></i>
+          </button>
+          <div>
+            <h1 id="page-title">Dashboard Overview</h1>
+            <p id="page-subtitle" class="text-muted">Welcome back, Abu! Here is what's happening today.</p>
+          </div>
         </div>
         
         <div class="header-right">
