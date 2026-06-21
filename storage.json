@@ -162,13 +162,6 @@
       "temp": 4.2,
       "humidity": 90,
       "capacity": 20000
-    },
-    {
-      "id": "Chamber-04",
-      "name": "Chamber 04 (Sweet Potato)",
-      "temp": 3.5,
-      "humidity": 85,
-      "capacity": 12000
     }
   ],
   "chamber_racks": [
@@ -255,34 +248,6 @@
       "name": "Rack 04",
       "stored": 4800,
       "capacity": 5000
-    },
-    {
-      "chamberId": "Chamber-04",
-      "rackId": "R-01",
-      "name": "Rack 01",
-      "stored": 0,
-      "capacity": 3000
-    },
-    {
-      "chamberId": "Chamber-04",
-      "rackId": "R-02",
-      "name": "Rack 02",
-      "stored": 0,
-      "capacity": 3000
-    },
-    {
-      "chamberId": "Chamber-04",
-      "rackId": "R-03",
-      "name": "Rack 03",
-      "stored": 0,
-      "capacity": 3000
-    },
-    {
-      "chamberId": "Chamber-04",
-      "rackId": "R-04",
-      "name": "Rack 04",
-      "stored": 0,
-      "capacity": 3000
     }
   ]
 }
