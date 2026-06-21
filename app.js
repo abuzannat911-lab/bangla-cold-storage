@@ -714,16 +714,16 @@ class ColdStorageApp {
       
       item.innerHTML = `
         <div class="chamber-info">
+          <h4>${c.name}</h4>
+          <p>${occupied.toLocaleString()} / ${c.capacity.toLocaleString()} Bags (${occupancy}%)</p>
+        </div>
+        <div class="chamber-status-indicator">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <h4>${c.name}</h4>
+            <span class="temp">${c.temp} °C</span>
             <button class="btn-delete-chamber" title="Delete Chamber" onclick="event.stopPropagation(); app.deleteChamber('${c.id}')">
               <i data-lucide="trash-2" style="width:14px; height:14px;"></i>
             </button>
           </div>
-          <p>${occupied.toLocaleString()} / ${c.capacity.toLocaleString()} Bags (${occupancy}%)</p>
-        </div>
-        <div class="chamber-status-indicator">
-          <span class="temp">${c.temp} °C</span>
           <span class="badge ${c.temp > 4 ? 'badge-loan' : 'badge-stored'}" style="font-size:0.6rem; padding: 2px 6px;">
             ${c.temp > 4 ? 'Warm Alert' : 'Cold OK'}
           </span>
