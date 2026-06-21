@@ -1,0 +1,253 @@
+{
+  "users": [
+    {
+      "username": "admin",
+      "password": "shebacold"
+    }
+  ],
+  "bookings": [
+    {
+      "srCode": "SR-2026-001",
+      "farmerName": "Md. Rafiqul Islam (রফিকুল ইসলাম)",
+      "phone": "01712345678",
+      "nid": "1985269123456",
+      "address": "Joypurhat Sadar, Joypurhat",
+      "crop": "Cardinal Potato",
+      "totalBags": 150,
+      "storedBags": 100,
+      "chamber": "Chamber-01",
+      "rack": "R-01",
+      "rentRate": 250,
+      "advance": 2000,
+      "date": "2026-03-12",
+      "status": "Loan Pledged"
+    },
+    {
+      "srCode": "SR-2026-002",
+      "farmerName": "Alhaj Mokbul Hossain (মকবুল হোসেন)",
+      "phone": "01819876543",
+      "nid": "1972569789123",
+      "address": "Kalai, Joypurhat",
+      "crop": "Diamant Potato",
+      "totalBags": 300,
+      "storedBags": 300,
+      "chamber": "Chamber-02",
+      "rack": "R-02",
+      "rentRate": 250,
+      "advance": 5000,
+      "date": "2026-03-15",
+      "status": "Stored"
+    },
+    {
+      "srCode": "SR-2026-003",
+      "farmerName": "Sree Niren Chandra (নীরেন চন্দ্র)",
+      "phone": "01911223344",
+      "nid": "1988269112233",
+      "address": "Panchbibi, Joypurhat",
+      "crop": "Granola Potato",
+      "totalBags": 80,
+      "storedBags": 0,
+      "chamber": "Chamber-03",
+      "rack": "R-04",
+      "rentRate": 240,
+      "advance": 0,
+      "date": "2026-03-18",
+      "status": "Released"
+    },
+    {
+      "srCode": "SR-2026-004",
+      "farmerName": "Md. Anisur Rahman (আনিসুর রহমান)",
+      "phone": "01552345678",
+      "nid": "1980269324512",
+      "address": "Khetlal, Joypurhat",
+      "crop": "Onion",
+      "totalBags": 120,
+      "storedBags": 120,
+      "chamber": "Chamber-01",
+      "rack": "R-03",
+      "rentRate": 260,
+      "advance": 1000,
+      "date": "2026-03-20",
+      "status": "Stored"
+    }
+  ],
+  "loans": [
+    {
+      "id": 1,
+      "srCode": "SR-2026-001",
+      "farmerName": "Md. Rafiqul Islam (রফিকুল ইসলাম)",
+      "phone": "01712345678",
+      "pledgedBags": 150,
+      "principal": 30000,
+      "interestRate": 12,
+      "disbursementDate": "2026-03-20",
+      "status": "Active"
+    }
+  ],
+  "chalans": [
+    {
+      "id": "CH-2026-001",
+      "type": "IN",
+      "date": "2026-03-12 09:30 AM",
+      "srCode": "SR-2026-001",
+      "farmerName": "Md. Rafiqul Islam",
+      "bags": 150,
+      "truckNo": "Bogura Metro-Ta 11-4567",
+      "laborCharge": 1200,
+      "operator": "Abu Zannat"
+    },
+    {
+      "id": "CH-2026-002",
+      "type": "IN",
+      "date": "2026-03-15 11:15 AM",
+      "srCode": "SR-2026-002",
+      "farmerName": "Alhaj Mokbul Hossain",
+      "bags": 300,
+      "truckNo": "Dhaka Metro-Ta 13-9876",
+      "laborCharge": 2400,
+      "operator": "Abu Zannat"
+    },
+    {
+      "id": "CH-2026-003",
+      "type": "IN",
+      "date": "2026-03-18 02:40 PM",
+      "srCode": "SR-2026-003",
+      "farmerName": "Sree Niren Chandra",
+      "bags": 80,
+      "truckNo": "Kariman Local V-12",
+      "laborCharge": 640,
+      "operator": "Abu Zannat"
+    },
+    {
+      "id": "CH-2026-004",
+      "type": "OUT",
+      "date": "2026-06-10 10:00 AM",
+      "srCode": "SR-2026-001",
+      "farmerName": "Md. Rafiqul Islam",
+      "bags": 50,
+      "truckNo": "Naseemon V-44",
+      "laborCharge": 400,
+      "operator": "Abu Zannat"
+    },
+    {
+      "id": "CH-2026-005",
+      "type": "OUT",
+      "date": "2026-06-15 04:30 PM",
+      "srCode": "SR-2026-003",
+      "farmerName": "Sree Niren Chandra",
+      "bags": 80,
+      "truckNo": "Pick-up Dhaka Metro-Na 21-3456",
+      "laborCharge": 640,
+      "operator": "Abu Zannat"
+    }
+  ],
+  "chambers": [
+    {
+      "id": "Chamber-01",
+      "name": "Chamber 01 (Cardinal Potato)",
+      "temp": 2.4,
+      "humidity": 88,
+      "capacity": 15000
+    },
+    {
+      "id": "Chamber-02",
+      "name": "Chamber 02 (White Potato)",
+      "temp": 3.1,
+      "humidity": 87,
+      "capacity": 15000
+    },
+    {
+      "id": "Chamber-03",
+      "name": "Chamber 03 (Seed Potato & Onion)",
+      "temp": 4.2,
+      "humidity": 90,
+      "capacity": 20000
+    }
+  ],
+  "chamber_racks": [
+    {
+      "chamberId": "Chamber-01",
+      "rackId": "R-01",
+      "name": "Rack 01",
+      "stored": 8500,
+      "capacity": 10000
+    },
+    {
+      "chamberId": "Chamber-01",
+      "rackId": "R-02",
+      "name": "Rack 02",
+      "stored": 4200,
+      "capacity": 5000
+    },
+    {
+      "chamberId": "Chamber-01",
+      "rackId": "R-03",
+      "name": "Rack 03",
+      "stored": 1100,
+      "capacity": 5000
+    },
+    {
+      "chamberId": "Chamber-01",
+      "rackId": "R-04",
+      "name": "Rack 04",
+      "stored": 300,
+      "capacity": 5000
+    },
+    {
+      "chamberId": "Chamber-02",
+      "rackId": "R-01",
+      "name": "Rack 01",
+      "stored": 9800,
+      "capacity": 10000
+    },
+    {
+      "chamberId": "Chamber-02",
+      "rackId": "R-02",
+      "name": "Rack 02",
+      "stored": 4900,
+      "capacity": 5000
+    },
+    {
+      "chamberId": "Chamber-02",
+      "rackId": "R-03",
+      "name": "Rack 03",
+      "stored": 4600,
+      "capacity": 5000
+    },
+    {
+      "chamberId": "Chamber-02",
+      "rackId": "R-04",
+      "name": "Rack 04",
+      "stored": 1200,
+      "capacity": 5000
+    },
+    {
+      "chamberId": "Chamber-03",
+      "rackId": "R-01",
+      "name": "Rack 01",
+      "stored": 10000,
+      "capacity": 10000
+    },
+    {
+      "chamberId": "Chamber-03",
+      "rackId": "R-02",
+      "name": "Rack 02",
+      "stored": 4000,
+      "capacity": 5000
+    },
+    {
+      "chamberId": "Chamber-03",
+      "rackId": "R-03",
+      "name": "Rack 03",
+      "stored": 1000,
+      "capacity": 5000
+    },
+    {
+      "chamberId": "Chamber-03",
+      "rackId": "R-04",
+      "name": "Rack 04",
+      "stored": 4800,
+      "capacity": 5000
+    }
+  ]
+}

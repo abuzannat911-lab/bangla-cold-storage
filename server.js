@@ -72,6 +72,15 @@ function saveData(data) {
 const app = express();
 app.use(express.json());
 
+// Handle cPanel subdirectory routing (/bangla-cold-storage)
+app.use((req, res, next) => {
+    if (req.url.startsWith('/bangla-cold-storage')) {
+        req.url = req.url.slice('/bangla-cold-storage'.length);
+        if (req.url === '') req.url = '/';
+    }
+    next();
+});
+
 // GET State
 app.get('/api/state', (req, res) => {
     try {

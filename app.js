@@ -20,6 +20,17 @@ class ColdStorageApp {
     this.currentChamberId = null;
   }
 
+  getApiUrl(endpoint) {
+    const path = window.location.pathname;
+    const base = path.endsWith('/') ? path : path.substring(0, path.lastIndexOf('/') + 1);
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+    return base + cleanEndpoint;
+  }
+
+  async apiFetch(url, options = {}) {
+    return fetch(this.getApiUrl(url), options);
+  }
+
   async init() {
     // 1. Check user login session
     this.checkLogin();
@@ -56,7 +67,7 @@ class ColdStorageApp {
 
   async refreshState() {
     try {
-      const res = await fetch('/api/state');
+      const res = await this.apiFetch('/api/state');
       if (res.ok) {
         this.state = await res.json();
       } else {
@@ -457,7 +468,7 @@ class ColdStorageApp {
     };
 
     try {
-      const res = await fetch('/api/bookings', {
+      const res = await this.apiFetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newBooking)
@@ -626,7 +637,7 @@ class ColdStorageApp {
     };
 
     try {
-      const res = await fetch('/api/loans', {
+      const res = await this.apiFetch('/api/loans', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newLoan)
@@ -902,7 +913,7 @@ class ColdStorageApp {
     };
 
     try {
-      const res = await fetch('/api/chalans', {
+      const res = await this.apiFetch('/api/chalans', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newChalan)
@@ -974,7 +985,7 @@ class ColdStorageApp {
     const remainingBags = booking.storedBags;
 
     try {
-      const res = await fetch('/api/settle', {
+      const res = await this.apiFetch('/api/settle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ srCode, amountPaid })
@@ -1344,7 +1355,7 @@ class ColdStorageApp {
       const newHumidity = Math.max(85, chamber.humidity - 2);
       
       try {
-        const res = await fetch('/api/ventilation', {
+        const res = await this.apiFetch('/api/ventilation', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1549,7 +1560,7 @@ class ColdStorageApp {
     const card = document.querySelector(".login-card");
 
     try {
-      const res = await fetch('/api/login', {
+      const res = await this.apiFetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
@@ -1592,7 +1603,7 @@ class ColdStorageApp {
   }
 
   downloadBackup() {
-    window.location.href = '/api/backup';
+    window.location.href = this.getApiUrl('/api/backup');
   }
 
   async uploadRestore(event) {
@@ -1604,7 +1615,7 @@ class ColdStorageApp {
         const reader = new FileReader();
         reader.onload = async (e) => {
           const buffer = e.target.result;
-          const res = await fetch('/api/restore', {
+          const res = await this.apiFetch('/api/restore', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/octet-stream'
@@ -1630,7 +1641,7 @@ class ColdStorageApp {
   async resetDatabase() {
     if (confirm("Reset Database? This will erase all custom entries and restore the default database seeds.")) {
       try {
-        const res = await fetch('/api/reset', { method: 'POST' });
+        const res = await this.apiFetch('/api/reset', { method: 'POST' });
         if (res.ok) {
           alert("Database factory reset completed!");
           await this.refreshState();
