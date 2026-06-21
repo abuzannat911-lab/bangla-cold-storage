@@ -174,7 +174,8 @@ h1, h2, h3, h4, h5, h6 {
   transition: all var(--transition-fast);
 }
 
-.nav-link i {
+.nav-link i,
+.nav-link svg {
   width: 18px;
   height: 18px;
   transition: transform var(--transition-fast);
@@ -185,7 +186,8 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-primary);
 }
 
-.nav-link:hover i {
+.nav-link:hover i,
+.nav-link:hover svg {
   transform: translateX(2px);
 }
 
@@ -680,7 +682,8 @@ h1, h2, h3, h4, h5, h6 {
   max-width: 400px;
 }
 
-.search-box i {
+.search-box i,
+.search-box svg {
   position: absolute;
   left: 14px;
   top: 50%;
@@ -1096,7 +1099,8 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: center;
 }
 
-.icon-indicator i {
+.icon-indicator i,
+.icon-indicator svg {
   width: 16px;
   height: 16px;
 }
