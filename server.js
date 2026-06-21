@@ -1,250 +1,112 @@
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
 
 const PORT = process.env.PORT || 8080;
-const DB_FILE = 'storage.db';
+const DB_FILE = 'storage.json';
 
-let db;
-
-// Helper to open DB
-function dbOpen() {
-    return new Promise((resolve, reject) => {
-        db = new sqlite3.Database(DB_FILE, (err) => {
-            if (err) reject(err);
-            else resolve();
-        });
-    });
-}
-
-// Helper to close DB
-function dbClose() {
-    return new Promise((resolve, reject) => {
-        if (!db) return resolve();
-        db.close((err) => {
-            if (err) reject(err);
-            else resolve();
-        });
-    });
-}
+// Default seed data
+const DEFAULT_DATA = {
+    users: [
+        { username: "admin", password: "shebacold" }
+    ],
+    bookings: [
+        { srCode: "SR-2026-001", farmerName: "Md. Rafiqul Islam (রফিকুল ইসলাম)", phone: "01712345678", nid: "1985269123456", address: "Joypurhat Sadar, Joypurhat", crop: "Cardinal Potato", totalBags: 150, storedBags: 100, chamber: "Chamber-01", rack: "R-01", rentRate: 250, advance: 2000, date: "2026-03-12", status: "Loan Pledged" },
+        { srCode: "SR-2026-002", farmerName: "Alhaj Mokbul Hossain (মকবুল হোসেন)", phone: "01819876543", nid: "1972569789123", address: "Kalai, Joypurhat", crop: "Diamant Potato", totalBags: 300, storedBags: 300, chamber: "Chamber-02", rack: "R-02", rentRate: 250, advance: 5000, date: "2026-03-15", status: "Stored" },
+        { srCode: "SR-2026-003", farmerName: "Sree Niren Chandra (নীরেন চন্দ্র)", phone: "01911223344", nid: "1988269112233", address: "Panchbibi, Joypurhat", crop: "Granola Potato", totalBags: 80, storedBags: 0, chamber: "Chamber-03", rack: "R-04", rentRate: 240, advance: 0, date: "2026-03-18", status: "Released" },
+        { srCode: "SR-2026-004", farmerName: "Md. Anisur Rahman (আনিসুর রহমান)", phone: "01552345678", nid: "1980269324512", address: "Khetlal, Joypurhat", crop: "Onion", totalBags: 120, storedBags: 120, chamber: "Chamber-01", rack: "R-03", rentRate: 260, advance: 1000, date: "2026-03-20", status: "Stored" }
+    ],
+    loans: [
+        { id: 1, srCode: "SR-2026-001", farmerName: "Md. Rafiqul Islam (রফিকুল ইসলাম)", phone: "01712345678", pledgedBags: 150, principal: 30000, interestRate: 12, disbursementDate: "2026-03-20", status: "Active" }
+    ],
+    chalans: [
+        { id: "CH-2026-001", type: "IN", date: "2026-03-12 09:30 AM", srCode: "SR-2026-001", farmerName: "Md. Rafiqul Islam", bags: 150, truckNo: "Bogura Metro-Ta 11-4567", laborCharge: 1200, operator: "Abu Zannat" },
+        { id: "CH-2026-002", type: "IN", date: "2026-03-15 11:15 AM", srCode: "SR-2026-002", farmerName: "Alhaj Mokbul Hossain", bags: 300, truckNo: "Dhaka Metro-Ta 13-9876", laborCharge: 2400, operator: "Abu Zannat" },
+        { id: "CH-2026-003", type: "IN", date: "2026-03-18 02:40 PM", srCode: "SR-2026-003", farmerName: "Sree Niren Chandra", bags: 80, truckNo: "Kariman Local V-12", laborCharge: 640, operator: "Abu Zannat" },
+        { id: "CH-2026-004", type: "OUT", date: "2026-06-10 10:00 AM", srCode: "SR-2026-001", farmerName: "Md. Rafiqul Islam", bags: 50, truckNo: "Naseemon V-44", laborCharge: 400, operator: "Abu Zannat" },
+        { id: "CH-2026-005", type: "OUT", date: "2026-06-15 04:30 PM", srCode: "SR-2026-003", farmerName: "Sree Niren Chandra", bags: 80, truckNo: "Pick-up Dhaka Metro-Na 21-3456", laborCharge: 640, operator: "Abu Zannat" }
+    ],
+    chambers: [
+        { id: "Chamber-01", name: "Chamber 01 (Cardinal Potato)", temp: 2.4, humidity: 88, capacity: 15000 },
+        { id: "Chamber-02", name: "Chamber 02 (White Potato)", temp: 3.1, humidity: 87, capacity: 15000 },
+        { id: "Chamber-03", name: "Chamber 03 (Seed Potato & Onion)", temp: 4.2, humidity: 90, capacity: 20000 }
+    ],
+    chamber_racks: [
+        { chamberId: "Chamber-01", rackId: "R-01", name: "Rack 01", stored: 8500, capacity: 10000 },
+        { chamberId: "Chamber-01", rackId: "R-02", name: "Rack 02", stored: 4200, capacity: 5000 },
+        { chamberId: "Chamber-01", rackId: "R-03", name: "Rack 03", stored: 1100, capacity: 5000 },
+        { chamberId: "Chamber-01", rackId: "R-04", name: "Rack 04", stored: 300, capacity: 5000 },
+        
+        { chamberId: "Chamber-02", rackId: "R-01", name: "Rack 01", stored: 9800, capacity: 10000 },
+        { chamberId: "Chamber-02", rackId: "R-02", name: "Rack 02", stored: 4900, capacity: 5000 },
+        { chamberId: "Chamber-02", rackId: "R-03", name: "Rack 03", stored: 4600, capacity: 5000 },
+        { chamberId: "Chamber-02", rackId: "R-04", name: "Rack 04", stored: 1200, capacity: 5000 },
+        
+        { chamberId: "Chamber-03", rackId: "R-01", name: "Rack 01", stored: 10000, capacity: 10000 },
+        { chamberId: "Chamber-03", rackId: "R-02", name: "Rack 02", stored: 4000, capacity: 5000 },
+        { chamberId: "Chamber-03", rackId: "R-03", name: "Rack 03", stored: 1000, capacity: 5000 },
+        { chamberId: "Chamber-03", rackId: "R-04", name: "Rack 04", stored: 4800, capacity: 5000 }
+    ]
+};
 
 // Database helper functions
-const dbRun = (sql, params = []) => {
-    return new Promise((resolve, reject) => {
-        db.run(sql, params, function(err) {
-            if (err) reject(err);
-            else resolve(this);
-        });
-    });
-};
-
-const dbAll = (sql, params = []) => {
-    return new Promise((resolve, reject) => {
-        db.all(sql, params, (err, rows) => {
-            if (err) reject(err);
-            else resolve(rows);
-        });
-    });
-};
-
-const dbGet = (sql, params = []) => {
-    return new Promise((resolve, reject) => {
-        db.get(sql, params, (err, row) => {
-            if (err) reject(err);
-            else resolve(row);
-        });
-    });
-};
-
-// Initialize DB schema
-async function initDbTables() {
-    // Create tables
-    await dbRun(`
-        CREATE TABLE IF NOT EXISTS users (
-            username TEXT PRIMARY KEY,
-            password TEXT NOT NULL
-        );
-    `);
-
-    await dbRun(`
-        CREATE TABLE IF NOT EXISTS bookings (
-            srCode TEXT PRIMARY KEY,
-            farmerName TEXT NOT NULL,
-            phone TEXT NOT NULL,
-            nid TEXT,
-            address TEXT,
-            crop TEXT NOT NULL,
-            totalBags INTEGER NOT NULL,
-            storedBags INTEGER NOT NULL,
-            chamber TEXT NOT NULL,
-            rack TEXT NOT NULL,
-            rentRate INTEGER NOT NULL,
-            advance INTEGER NOT NULL,
-            date TEXT NOT NULL,
-            status TEXT NOT NULL
-        );
-    `);
-
-    await dbRun(`
-        CREATE TABLE IF NOT EXISTS loans (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            srCode TEXT NOT NULL,
-            farmerName TEXT NOT NULL,
-            phone TEXT NOT NULL,
-            pledgedBags INTEGER NOT NULL,
-            principal INTEGER NOT NULL,
-            interestRate INTEGER NOT NULL,
-            disbursementDate TEXT NOT NULL,
-            status TEXT NOT NULL
-        );
-    `);
-
-    await dbRun(`
-        CREATE TABLE IF NOT EXISTS chalans (
-            id TEXT PRIMARY KEY,
-            type TEXT NOT NULL,
-            date TEXT NOT NULL,
-            srCode TEXT NOT NULL,
-            farmerName TEXT NOT NULL,
-            bags INTEGER NOT NULL,
-            truckNo TEXT,
-            laborCharge INTEGER NOT NULL,
-            operator TEXT NOT NULL
-        );
-    `);
-
-    await dbRun(`
-        CREATE TABLE IF NOT EXISTS chambers (
-            id TEXT PRIMARY KEY,
-            name TEXT NOT NULL,
-            temp REAL NOT NULL,
-            humidity REAL NOT NULL,
-            capacity INTEGER NOT NULL
-        );
-    `);
-
-    await dbRun(`
-        CREATE TABLE IF NOT EXISTS chamber_racks (
-            chamberId TEXT NOT NULL,
-            rackId TEXT NOT NULL,
-            name TEXT NOT NULL,
-            stored INTEGER NOT NULL,
-            capacity INTEGER NOT NULL,
-            PRIMARY KEY (chamberId, rackId)
-        );
-    `);
-
-    // Seed if users is empty
-    const userCount = await dbGet("SELECT COUNT(*) as count FROM users");
-    if (userCount.count === 0) {
-        await seedData();
+function loadData() {
+    if (!fs.existsSync(DB_FILE)) {
+        fs.writeFileSync(DB_FILE, JSON.stringify(DEFAULT_DATA, null, 2));
+        return JSON.parse(JSON.stringify(DEFAULT_DATA));
+    }
+    try {
+        const raw = fs.readFileSync(DB_FILE, 'utf-8');
+        return JSON.parse(raw);
+    } catch (e) {
+        fs.writeFileSync(DB_FILE, JSON.stringify(DEFAULT_DATA, null, 2));
+        return JSON.parse(JSON.stringify(DEFAULT_DATA));
     }
 }
 
-// Seed initial data
-async function seedData() {
-    console.log("Seeding initial database values...");
-
-    // 1. Seed user
-    await dbRun("INSERT OR REPLACE INTO users (username, password) VALUES (?, ?)", ['admin', 'shebacold']);
-
-    // 2. Seed bookings
-    const bookings = [
-        ["SR-2026-001", "Md. Rafiqul Islam (রফিকুল ইসলাম)", "01712345678", "1985269123456", "Joypurhat Sadar, Joypurhat", "Cardinal Potato", 150, 100, "Chamber-01", "R-01", 250, 2000, "2026-03-12", "Loan Pledged"],
-        ["SR-2026-002", "Alhaj Mokbul Hossain (মকবুল হোসেন)", "01819876543", "1972569789123", "Kalai, Joypurhat", "Diamant Potato", 300, 300, "Chamber-02", "R-02", 250, 5000, "2026-03-15", "Stored"],
-        ["SR-2026-003", "Sree Niren Chandra (নীরেন চন্দ্র)", "01911223344", "1988269112233", "Panchbibi, Joypurhat", "Granola Potato", 80, 0, "Chamber-03", "R-04", 240, 0, "2026-03-18", "Released"],
-        ["SR-2026-004", "Md. Anisur Rahman (আনিসুর রহমান)", "01552345678", "1980269324512", "Khetlal, Joypurhat", "Onion", 120, 120, "Chamber-01", "R-03", 260, 1000, "2026-03-20", "Stored"]
-    ];
-    for (const b of bookings) {
-        await dbRun("INSERT OR REPLACE INTO bookings VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", b);
-    }
-
-    // 3. Seed loan
-    await dbRun("INSERT OR REPLACE INTO loans (srCode, farmerName, phone, pledgedBags, principal, interestRate, disbursementDate, status) VALUES (?,?,?,?,?,?,?,?)",
-        ["SR-2026-001", "Md. Rafiqul Islam (রফিকুল ইসলাম)", "01712345678", 150, 30000, 12, "2026-03-20", "Active"]
-    );
-
-    // 4. Seed chalans
-    const chalans = [
-        ["CH-2026-001", "IN", "2026-03-12 09:30 AM", "SR-2026-001", "Md. Rafiqul Islam", 150, "Bogura Metro-Ta 11-4567", 1200, "Abu Zannat"],
-        ["CH-2026-002", "IN", "2026-03-15 11:15 AM", "SR-2026-002", "Alhaj Mokbul Hossain", 300, "Dhaka Metro-Ta 13-9876", 2400, "Abu Zannat"],
-        ["CH-2026-003", "IN", "2026-03-18 02:40 PM", "SR-2026-003", "Sree Niren Chandra", 80, "Kariman Local V-12", 640, "Abu Zannat"],
-        ["CH-2026-004", "OUT", "2026-06-10 10:00 AM", "SR-2026-001", "Md. Rafiqul Islam", 50, "Naseemon V-44", 400, "Abu Zannat"],
-        ["CH-2026-005", "OUT", "2026-06-15 04:30 PM", "SR-2026-003", "Sree Niren Chandra", 80, "Pick-up Dhaka Metro-Na 21-3456", 640, "Abu Zannat"]
-    ];
-    for (const c of chalans) {
-        await dbRun("INSERT OR REPLACE INTO chalans VALUES (?,?,?,?,?,?,?,?,?)", c);
-    }
-
-    // 5. Seed chambers
-    const chambers = [
-        ["Chamber-01", "Chamber 01 (Cardinal Potato)", 2.4, 88, 15000],
-        ["Chamber-02", "Chamber 02 (White Potato)", 3.1, 87, 15000],
-        ["Chamber-03", "Chamber 03 (Seed Potato & Onion)", 4.2, 90, 20000]
-    ];
-    for (const ch of chambers) {
-        await dbRun("INSERT OR REPLACE INTO chambers VALUES (?,?,?,?,?)", ch);
-    }
-
-    // 6. Seed chamber racks
-    const racks = [
-        ["Chamber-01", "R-01", "Rack 01", 8500, 10000],
-        ["Chamber-01", "R-02", "Rack 02", 4200, 5000],
-        ["Chamber-01", "R-03", "Rack 03", 1100, 5000],
-        ["Chamber-01", "R-04", "Rack 04", 300, 5000],
-        
-        ["Chamber-02", "R-01", "Rack 01", 9800, 10000],
-        ["Chamber-02", "R-02", "Rack 02", 4900, 5000],
-        ["Chamber-02", "R-03", "Rack 03", 4600, 5000],
-        ["Chamber-02", "R-04", "Rack 04", 1200, 5000],
-        
-        ["Chamber-03", "R-01", "Rack 01", 10000, 10000],
-        ["Chamber-03", "R-02", "Rack 02", 4000, 5000],
-        ["Chamber-03", "R-03", "Rack 03", 1000, 5000],
-        ["Chamber-03", "R-04", "Rack 04", 4800, 5000]
-    ];
-    for (const r of racks) {
-        await dbRun("INSERT OR REPLACE INTO chamber_racks VALUES (?,?,?,?,?)", r);
-    }
-
-    console.log("Database seeded successfully.");
+function saveData(data) {
+    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
 }
 
-// Create Express Server
+// Create Express app
 const app = express();
 app.use(express.json());
 
-// Routes
-
 // GET State
-app.get('/api/state', async (req, res) => {
+app.get('/api/state', (req, res) => {
     try {
-        const bookings = await dbAll("SELECT * FROM bookings");
-        const loans = await dbAll("SELECT * FROM loans");
-        const chalans = await dbAll("SELECT * FROM chalans");
-        
-        const chambersRaw = await dbAll("SELECT * FROM chambers");
-        const chambers = [];
-        for (const ch of chambersRaw) {
-            const racks = await dbAll("SELECT rackId as id, name, stored, capacity FROM chamber_racks WHERE chamberId=?", [ch.id]);
-            chambers.push({
+        const data = loadData();
+        const chambers = data.chambers.map(ch => {
+            const racks = data.chamber_racks
+                .filter(r => r.chamberId === ch.id)
+                .map(r => ({
+                    id: r.rackId,
+                    name: r.name,
+                    stored: r.stored,
+                    capacity: r.capacity
+                }));
+            return {
                 ...ch,
                 racks
-            });
-        }
-
-        res.json({ bookings, loans, chalans, chambers });
+            };
+        });
+        res.json({
+            bookings: data.bookings,
+            loans: data.loans,
+            chalans: data.chalans,
+            chambers
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
 // POST Login
-app.post('/api/login', async (req, res) => {
+app.post('/api/login', (req, res) => {
     try {
         const { username, password } = req.body;
-        const user = await dbGet("SELECT * FROM users WHERE username=? AND password=?", [username, password]);
+        const data = loadData();
+        const user = data.users.find(u => u.username === username && u.password === password);
         if (user) {
             res.json({ success: true, token: "sheba_session_token_xyz" });
         } else {
@@ -256,59 +118,61 @@ app.post('/api/login', async (req, res) => {
 });
 
 // POST Bookings
-app.post('/api/bookings', async (req, res) => {
+app.post('/api/bookings', (req, res) => {
     try {
-        const data = req.body;
-        
-        // Insert Booking
-        await dbRun(`
-            INSERT INTO bookings VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-        `, [
-            data.srCode, data.farmerName, data.phone, data.nid,
-            data.address, data.crop, data.totalBags, data.storedBags,
-            data.chamber, data.rack, data.rentRate, data.advance,
-            data.date, data.status
-        ]);
+        const booking = req.body;
+        const data = loadData();
 
-        // Insert matching intake chalan
-        const allChalans = await dbAll("SELECT id FROM chalans");
-        const chalanId = `CH-2026-${String(allChalans.length + 1).padStart(3, '0')}`;
-        await dbRun(`
-            INSERT INTO chalans VALUES (?,?,?,?,?,?,?,?,?)
-        `, [
-            chalanId, "IN", `${data.date} 09:00 AM`, data.srCode,
-            data.farmerName, data.totalBags, "Farmer Delivery Cart",
-            data.totalBags * 8, "Abu Zannat"
-        ]);
+        // Save booking
+        data.bookings.push(booking);
+
+        // Add matching intake chalan
+        const chalanId = `CH-2026-${String(data.chalans.length + 1).padStart(3, '0')}`;
+        data.chalans.push({
+            id: chalanId,
+            type: "IN",
+            date: `${booking.date} 09:00 AM`,
+            srCode: booking.srCode,
+            farmerName: booking.farmerName,
+            bags: booking.totalBags,
+            truckNo: "Farmer Delivery Cart",
+            laborCharge: booking.totalBags * 8,
+            operator: "Abu Zannat"
+        });
 
         // Update Rack
-        await dbRun(`
-            UPDATE chamber_racks SET stored = stored + ? WHERE chamberId=? AND rackId=?
-        `, [data.totalBags, data.chamber, data.rack]);
+        const rack = data.chamber_racks.find(r => r.chamberId === booking.chamber && r.rackId === booking.rack);
+        if (rack) {
+            rack.stored += booking.totalBags;
+        }
 
-        res.json({ success: true, srCode: data.srCode });
+        saveData(data);
+        res.json({ success: true, srCode: booking.srCode });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
 // POST Loans
-app.post('/api/loans', async (req, res) => {
+app.post('/api/loans', (req, res) => {
     try {
-        const data = req.body;
-        
-        // Insert Loan
-        await dbRun(`
-            INSERT INTO loans (srCode, farmerName, phone, pledgedBags, principal, interestRate, disbursementDate, status)
-            VALUES (?,?,?,?,?,?,?,?)
-        `, [
-            data.srCode, data.farmerName, data.phone, data.pledgedBags,
-            data.principal, data.interestRate, data.disbursementDate, data.status
-        ]);
+        const loan = req.body;
+        const data = loadData();
+
+        // Increment loan ID
+        const nextId = data.loans.reduce((max, l) => l.id > max ? l.id : max, 0) + 1;
+        loan.id = nextId;
+
+        // Save loan
+        data.loans.push(loan);
 
         // Update Booking status
-        await dbRun("UPDATE bookings SET status='Loan Pledged' WHERE srCode=?", [data.srCode]);
+        const booking = data.bookings.find(b => b.srCode === loan.srCode);
+        if (booking) {
+            booking.status = 'Loan Pledged';
+        }
 
+        saveData(data);
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -316,43 +180,43 @@ app.post('/api/loans', async (req, res) => {
 });
 
 // POST Chalans
-app.post('/api/chalans', async (req, res) => {
+app.post('/api/chalans', (req, res) => {
     try {
-        const data = req.body;
-        const allChalans = await dbAll("SELECT id FROM chalans");
-        const chalanId = `CH-2026-${String(allChalans.length + 1).padStart(3, '0')}`;
+        const chalanInput = req.body;
+        const data = loadData();
 
-        await dbRun(`
-            INSERT INTO chalans VALUES (?,?,?,?,?,?,?,?,?)
-        `, [
-            chalanId, data.type, data.date, data.srCode,
-            data.farmerName, data.bags, data.truckNo,
-            data.laborCharge, data.operator
-        ]);
+        const chalanId = `CH-2026-${String(data.chalans.length + 1).padStart(3, '0')}`;
+        const newChalan = {
+            id: chalanId,
+            ...chalanInput
+        };
+
+        data.chalans.push(newChalan);
 
         // Update Booking stock & status
-        const booking = await dbGet("SELECT storedBags, totalBags, chamber, rack FROM bookings WHERE srCode=?", [data.srCode]);
+        const booking = data.bookings.find(b => b.srCode === newChalan.srCode);
         if (!booking) {
             return res.status(404).json({ error: "Booking not found" });
         }
 
-        const { storedBags, totalBags, chamber, rack } = booking;
-        if (data.type === "IN") {
-            const newStored = storedBags + data.bags;
-            const newTotal = totalBags + data.bags;
-            await dbRun("UPDATE bookings SET storedBags=?, totalBags=?, status='Stored' WHERE srCode=?",
-                [newStored, newTotal, data.srCode]);
-            await dbRun("UPDATE chamber_racks SET stored=stored+? WHERE chamberId=? AND rackId=?",
-                [data.bags, chamber, rack]);
+        const rack = data.chamber_racks.find(r => r.chamberId === booking.chamber && r.rackId === booking.rack);
+
+        if (newChalan.type === "IN") {
+            booking.storedBags += newChalan.bags;
+            booking.totalBags += newChalan.bags;
+            booking.status = 'Stored';
+            if (rack) {
+                rack.stored += newChalan.bags;
+            }
         } else {
-            const newStored = Math.max(0, storedBags - data.bags);
-            const newStatus = newStored === 0 ? 'Released' : 'Stored';
-            await dbRun("UPDATE bookings SET storedBags=?, status=? WHERE srCode=?",
-                [newStored, newStatus, data.srCode]);
-            await dbRun("UPDATE chamber_racks SET stored=MAX(0, stored-?) WHERE chamberId=? AND rackId=?",
-                [data.bags, chamber, rack]);
+            booking.storedBags = Math.max(0, booking.storedBags - newChalan.bags);
+            booking.status = booking.storedBags === 0 ? 'Released' : 'Stored';
+            if (rack) {
+                rack.stored = Math.max(0, rack.stored - newChalan.bags);
+            }
         }
 
+        saveData(data);
         res.json({ success: true, chalanId });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -360,43 +224,54 @@ app.post('/api/chalans', async (req, res) => {
 });
 
 // POST Settle
-app.post('/api/settle', async (req, res) => {
+app.post('/api/settle', (req, res) => {
     try {
         const { srCode } = req.body;
-        const booking = await dbGet("SELECT storedBags, farmerName, chamber, rack FROM bookings WHERE srCode=?", [srCode]);
+        const data = loadData();
+
+        const booking = data.bookings.find(b => b.srCode === srCode);
         if (!booking) {
             return res.status(404).json({ error: "Booking not found" });
         }
 
-        const { storedBags, farmerName, chamber, rack } = booking;
+        const remainingBags = booking.storedBags;
 
         // Add Gate Out Challan if stock remaining
-        if (storedBags > 0) {
-            const allChalans = await dbAll("SELECT id FROM chalans");
-            const chalanId = `CH-2026-${String(allChalans.length + 1).padStart(3, '0')}`;
-            
+        if (remainingBags > 0) {
+            const chalanId = `CH-2026-${String(data.chalans.length + 1).padStart(3, '0')}`;
             const now = new Date();
             const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-            
-            await dbRun(`
-                INSERT INTO chalans VALUES (?,?,?,?,?,?,?,?,?)
-            `, [
-                chalanId, "OUT", `${dateStr} 03:00 PM`,
-                srCode, farmerName, storedBags, "Settle & Settle Release Cart",
-                storedBags * 8, "Abu Zannat"
-            ]);
+
+            data.chalans.push({
+                id: chalanId,
+                type: "OUT",
+                date: `${dateStr} 03:00 PM`,
+                srCode,
+                farmerName: booking.farmerName,
+                bags: remainingBags,
+                truckNo: "Settle & Settle Release Cart",
+                laborCharge: remainingBags * 8,
+                operator: "Abu Zannat"
+            });
 
             // Update rack stock
-            await dbRun("UPDATE chamber_racks SET stored=MAX(0, stored-?) WHERE chamberId=? AND rackId=?",
-                [storedBags, chamber, rack]);
+            const rack = data.chamber_racks.find(r => r.chamberId === booking.chamber && r.rackId === booking.rack);
+            if (rack) {
+                rack.stored = Math.max(0, rack.stored - remainingBags);
+            }
         }
 
         // Set Booking status and stored bags to 0
-        await dbRun("UPDATE bookings SET storedBags=0, status='Released' WHERE srCode=?", [srCode]);
+        booking.storedBags = 0;
+        booking.status = 'Released';
 
         // Set Loan status to Settle Cleared
-        await dbRun("UPDATE loans SET status='Settle Cleared' WHERE srCode=? AND status='Active'", [srCode]);
+        const activeLoan = data.loans.find(l => l.srCode === srCode && l.status === 'Active');
+        if (activeLoan) {
+            activeLoan.status = 'Settle Cleared';
+        }
 
+        saveData(data);
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -404,10 +279,18 @@ app.post('/api/settle', async (req, res) => {
 });
 
 // POST Ventilation
-app.post('/api/ventilation', async (req, res) => {
+app.post('/api/ventilation', (req, res) => {
     try {
         const { temp, humidity, chamberId } = req.body;
-        await dbRun("UPDATE chambers SET temp=?, humidity=? WHERE id=?", [temp, humidity, chamberId]);
+        const data = loadData();
+
+        const chamber = data.chambers.find(c => c.id === chamberId);
+        if (chamber) {
+            chamber.temp = temp;
+            chamber.humidity = humidity;
+        }
+
+        saveData(data);
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -425,7 +308,7 @@ app.get('/api/backup', (req, res) => {
         const format2 = n => String(n).padStart(2, '0');
         const timestamp = `${now.getFullYear()}${format2(now.getMonth()+1)}${format2(now.getDate())}_${format2(now.getHours())}${format2(now.getMinutes())}${format2(now.getSeconds())}`;
         
-        res.attachment(`sheba_backup_${timestamp}.db`);
+        res.attachment(`sheba_backup_${timestamp}.json`);
         res.sendFile(path.resolve(DB_FILE), { dotfiles: 'allow' });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -433,17 +316,21 @@ app.get('/api/backup', (req, res) => {
 });
 
 // POST Restore
-app.post('/api/restore', express.raw({ type: 'application/octet-stream', limit: '50mb' }), async (req, res) => {
+app.post('/api/restore', express.raw({ type: 'application/octet-stream', limit: '50mb' }), (req, res) => {
     try {
         if (!req.body || req.body.length === 0) {
             return res.status(400).json({ error: "Empty restore body" });
         }
 
-        await dbClose();
+        // Write content
         fs.writeFileSync(DB_FILE, req.body);
-        await dbOpen();
-        await initDbTables();
         
+        // Re-read data to verify valid JSON structure
+        const testData = loadData();
+        if (!testData.users || !testData.bookings) {
+            throw new Error("Invalid schema");
+        }
+
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -451,14 +338,12 @@ app.post('/api/restore', express.raw({ type: 'application/octet-stream', limit: 
 });
 
 // POST Reset
-app.post('/api/reset', async (req, res) => {
+app.post('/api/reset', (req, res) => {
     try {
-        await dbClose();
         if (fs.existsSync(DB_FILE)) {
             fs.unlinkSync(DB_FILE);
         }
-        await dbOpen();
-        await initDbTables();
+        loadData(); // Re-creates and seeds DB_FILE
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -468,17 +353,8 @@ app.post('/api/reset', async (req, res) => {
 // Serve frontend static files
 app.use(express.static(__dirname));
 
-// Start server
-async function start() {
-    await dbOpen();
-    await initDbTables();
-    console.log("Initiated SQLite Database Schema & Seed Data.");
-    
-    app.listen(PORT, () => {
-        console.log(`Sheba Cold Storage Server running at http://localhost:${PORT}/`);
-    });
-}
-
-start().catch(err => {
-    console.error("Failed to start server:", err);
+// Initialize and Start Server
+loadData();
+app.listen(PORT, () => {
+    console.log(`Sheba Cold Storage Server running on port ${PORT}`);
 });
