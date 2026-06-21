@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sheba Cold Storage | Bangladesh Cold Storage Management System</title>
+  
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <!-- Local CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Login Screen Overlay -->
+  <div id="login-overlay" class="login-overlay">
+    <div class="login-card">
+      <div class="login-logo" style="margin-bottom: 24px; position: relative;">
+        <div class="logo-icon" style="margin: 0 auto 16px auto; width: 50px; height: 50px;">
+          <i data-lucide="snowflake" class="snowflake-icon"></i>
+          <i data-lucide="leaf" class="leaf-icon"></i>
+        </div>
+        <h2>Sheba Cold Storage</h2>
+        <span class="text-muted">Security Terminal Access</span>
+      </div>
+      
+      <form id="form-login" onsubmit="app.handleLogin(event)">
+        <div class="form-group" style="margin-bottom: 16px; text-align: left;">
+          <label for="login-username">Username / ইউজারনেম *</label>
+          <input type="text" id="login-username" class="form-control" required placeholder="e.g. admin" style="background-color: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px; width: 100%; border-radius: 8px; margin-top: 4px;">
+        </div>
+        <div class="form-group" style="margin-bottom: 24px; text-align: left;">
+          <label for="login-password">Password / পাসওয়ার্ড *</label>
+          <input type="password" id="login-password" class="form-control" required placeholder="••••••••" style="background-color: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px; width: 100%; border-radius: 8px; margin-top: 4px;">
+        </div>
+        
+        <div id="login-error-msg" class="text-danger text-small hidden" style="margin-bottom: 16px; color: var(--accent-red); font-size: 0.8rem; font-weight: 500;">
+          Invalid username or password. Please try again.
+        </div>
+        
+        <button type="submit" class="btn btn-primary w-full" style="padding: 12px; margin-top: 8px;">
+          <i data-lucide="log-in" style="width:16px; height:16px;"></i> Authenticate & Enter
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- App Shell -->
+  <div class="app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-icon">
+          <i data-lucide="snowflake" class="snowflake-icon"></i>
+          <i data-lucide="leaf" class="leaf-icon"></i>
+        </div>
+        <div class="logo-text">
+          <h2>Sheba Cold Storage</h2>
+          <span>সেবা কোল্ড স্টোরেজ</span>
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <ul>
+          <li>
+            <a href="#" class="nav-link active" data-tab="dashboard">
+              <i data-lucide="layout-dashboard"></i>
+              <span>Dashboard / ড্যাশবোর্ড</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-tab="bookings">
+              <i data-lucide="clipboard-list"></i>
+              <span>SR Bookings / এসআর বুকিং</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-tab="chambers">
+              <i data-lucide="boxes"></i>
+              <span>Chamber Map / চেম্বার ম্যাপ</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-tab="loans">
+              <i data-lucide="coins"></i>
+              <span>Dadan Loans / দাদন ও ঋণ</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-tab="gatepass">
+              <i data-lucide="truck"></i>
+              <span>Gate Chalans / গেট চালান</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-tab="reports">
+              <i data-lucide="bar-chart-3"></i>
+              <span>Financials / হিসাব-নিকাশ</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="user-avatar">AD</div>
+          <div class="user-info">
+            <span class="user-name">Abu Zannat</span>
+            <span class="user-role">Administrator</span>
+          </div>
+        </div>
+        <button class="btn btn-icon btn-logout" title="Log Out" onclick="app.handleLogout()">
+          <i data-lucide="log-out"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top Navigation Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <h1 id="page-title">Dashboard Overview</h1>
+          <p id="page-subtitle" class="text-muted">Welcome back, Abu! Here is what's happening today.</p>
+        </div>
+        
+        <div class="header-right">
+          <!-- Real-time Sensors Monitor -->
+          <div class="sensor-badges" id="header-sensors">
+            <!-- Dynamically populated -->
+          </div>
+          
+          <button class="btn btn-secondary btn-icon-text" id="quick-booking-btn">
+            <i data-lucide="plus-circle"></i>
+            <span>New Booking (SR)</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Scrollable Tab Container -->
+      <div class="content-body">
+
+        <!-- ================= DASHBOARD TAB ================= -->
+        <section id="tab-dashboard" class="tab-pane active">
+          <!-- KPI Cards Grid -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-header">
+                <span class="kpi-title">Total Stored Bags / মোট বস্তা</span>
+                <span class="kpi-icon-bg bg-emerald"><i data-lucide="package"></i></span>
+              </div>
+              <div class="kpi-value" id="kpi-total-bags">42,500</div>
+              <div class="kpi-footer">
+                <span class="text-success"><i data-lucide="arrow-up-right"></i> +8.2%</span>
+                <span class="text-muted">from last season</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-header">
+                <span class="kpi-title">Capacity Occupied / ধারণ ক্ষমতা</span>
+                <span class="kpi-icon-bg bg-blue"><i data-lucide="pie-chart"></i></span>
+              </div>
+              <div class="kpi-value" id="kpi-occupancy">85%</div>
+              <div class="kpi-footer progress-footer">
+                <div class="progress-bar-container">
+                  <div class="progress-bar" style="width: 85%" id="kpi-occupancy-bar"></div>
+                </div>
+                <span class="text-muted text-small">50,000 Bags Max</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-header">
+                <span class="kpi-title">Active Loans (Dadan) / মোট ঋণ দাদন</span>
+                <span class="kpi-icon-bg bg-amber"><i data-lucide="banknote"></i></span>
+              </div>
+              <div class="kpi-value" id="kpi-total-loans">৳ 2,450,000</div>
+              <div class="kpi-footer">
+                <span class="text-warning">156 active farmers</span>
+                <span class="text-muted">secured against stock</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-header">
+                <span class="kpi-title">Pending Revenue / সম্ভাব্য আয়</span>
+                <span class="kpi-icon-bg bg-indigo"><i data-lucide="badge-dollar-sign"></i></span>
+              </div>
+              <div class="kpi-value" id="kpi-total-revenue">৳ 8,500,000</div>
+              <div class="kpi-footer">
+                <span class="text-success">Calculated rent due</span>
+                <span class="text-muted">upon potato release</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts and Real-time Activity Grid -->
+          <div class="dashboard-grid">
+            <div class="card card-chart">
+              <div class="card-header">
+                <h3>Stock Inflow & Outflow / বস্তা আসা ও যাওয়া</h3>
+                <span class="text-muted text-small">Current Season 2026</span>
+              </div>
+              <div class="card-body">
+                <canvas id="stockFlowChart" height="280"></canvas>
+              </div>
+            </div>
+
+            <div class="card card-chart">
+              <div class="card-header">
+                <h3>Storage Crop Varieties / ফসলের ধরণ</h3>
+                <span class="text-muted text-small">Distribution by weight/bags</span>
+              </div>
+              <div class="card-body donut-chart-container">
+                <canvas id="cropVarietyChart" height="280"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Operations / Gate Passes -->
+          <div class="card table-card">
+            <div class="card-header flex-header">
+              <div>
+                <h3>Recent Gate Entries & Deliveries / সাম্প্রতিক চালান</h3>
+                <p class="text-muted text-small">Live log of trucks entering and exiting the terminal</p>
+              </div>
+              <button class="btn btn-outline btn-small" onclick="app.switchTab('gatepass')">View Gate Log</button>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Chalan ID</th>
+                    <th>Type</th>
+                    <th>Date / Time</th>
+                    <th>Farmer Name</th>
+                    <th>SR Code</th>
+                    <th>Bags (বস্তা)</th>
+                    <th>Labor Charge (কুলি)</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="recent-chalans-tbody">
+                  <!-- JS populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= BOOKINGS / SR TAB ================= -->
+        <section id="tab-bookings" class="tab-pane">
+          <div class="table-actions-bar">
+            <div class="search-box">
+              <i data-lucide="search"></i>
+              <input type="text" id="booking-search" placeholder="Search by Farmer Name, NID, Phone, or SR..." oninput="app.filterBookings()">
+            </div>
+            <div class="filter-group">
+              <select id="booking-filter-crop" onchange="app.filterBookings()">
+                <option value="">All Crop Varieties</option>
+                <option value="Cardinal Potato">Cardinal Potato (লাল আলু)</option>
+                <option value="Diamant Potato">Diamant Potato (সাদা আলু)</option>
+                <option value="Granola Potato">Granola Potato (বীজ আলু)</option>
+                <option value="Onion">Onion (পেঁয়াজ)</option>
+              </select>
+              <select id="booking-filter-status" onchange="app.filterBookings()">
+                <option value="">All Statuses</option>
+                <option value="Stored">Stored / গুদামজাত</option>
+                <option value="Loan Pledged">Loan Pledged / বন্ধকী ঋণ</option>
+                <option value="Released">Released / খালাস করা</option>
+              </select>
+              <button class="btn btn-primary" id="new-booking-btn">
+                <i data-lucide="plus"></i>
+                <span>Add Storage Booking</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="card table-card">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>SR Code</th>
+                    <th>Farmer Name</th>
+                    <th>Phone</th>
+                    <th>Crop / Variety</th>
+                    <th>Total Bags</th>
+                    <th>Stored Bags</th>
+                    <th>Chamber Loc</th>
+                    <th>Booking Date</th>
+                    <th>Loan Amount</th>
+                    <th>Status</th>
+                    <th class="text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="bookings-tbody">
+                  <!-- JS populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= CHAMBERS TAB ================= -->
+        <section id="tab-chambers" class="tab-pane">
+          <div class="chamber-monitoring-layout">
+            <div class="chamber-sidebar">
+              <div class="card">
+                <div class="card-header">
+                  <h3>Chamber Selection</h3>
+                  <p class="text-muted text-small">Select a vault to see levels and racks</p>
+                </div>
+                <div class="chamber-selector-list" id="chamber-list">
+                  <!-- JS populated -->
+                </div>
+              </div>
+
+              <div class="card info-card bg-gradient-green text-white">
+                <h4>Optimal Storage Care</h4>
+                <p>Potatoes require a continuous temperature of 2°C to 4°C with a relative humidity of 85-90% to prevent germination and weight loss.</p>
+                <div class="alert-box alert-warning">
+                  <i data-lucide="alert-triangle"></i>
+                  <span>Maintain ventilation cycles daily.</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="chamber-main-view">
+              <div class="card select-chamber-prompt" id="chamber-prompt">
+                <i data-lucide="layout-grid" class="massive-icon"></i>
+                <h3>Select a Chamber to View Racks</h3>
+                <p>Click on any chamber from the list to view its 3D rack allocation layout and cooling stats.</p>
+              </div>
+
+              <div class="card chamber-detail-card hidden" id="chamber-detail-panel">
+                <div class="card-header chamber-detail-header">
+                  <div>
+                    <h2 id="selected-chamber-title">Chamber 01</h2>
+                    <p class="text-muted" id="selected-chamber-sub">Total Capacity: 15,000 Bags | Active Stock: 12,400 Bags</p>
+                  </div>
+                  <div class="chamber-metrics">
+                    <div class="metric">
+                      <span class="metric-lbl">Temp</span>
+                      <span class="metric-val text-success" id="selected-chamber-temp">2.8 °C</span>
+                    </div>
+                    <div class="metric">
+                      <span class="metric-lbl">Humidity</span>
+                      <span class="metric-val text-blue" id="selected-chamber-humidity">88%</span>
+                    </div>
+                    <div class="metric">
+                      <span class="metric-lbl">Defrost Cycle</span>
+                      <span class="metric-val text-warning">Auto (12h)</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="chamber-layout-grid-container">
+                  <div class="grid-legend">
+                    <span class="legend-item"><span class="color-box empty"></span> Empty (0-20%)</span>
+                    <span class="legend-item"><span class="color-box medium"></span> Moderate (21-70%)</span>
+                    <span class="legend-item"><span class="color-box full"></span> High (71-100%)</span>
+                  </div>
+
+                  <!-- 3D Rack visualization grid -->
+                  <div class="rack-grid" id="chamber-rack-grid">
+                    <!-- JS generated rack nodes -->
+                  </div>
+
+                  <!-- Dynamic Ventilation Controls -->
+                  <div class="chamber-actions-panel" style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding-top: 16px; border-top: 1px dashed var(--border-color);">
+                    <div class="action-info">
+                      <span class="text-small text-muted" id="ventilation-status">System Standby</span>
+                    </div>
+                    <button class="btn btn-outline btn-small text-success" id="run-ventilation-btn" onclick="app.runVentilation()">
+                      <i data-lucide="fan"></i>
+                      <span>Run Ventilation / ফ্যান চালান</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= LOANS / DADAN TAB ================= -->
+        <section id="tab-loans" class="tab-pane">
+          <div class="loans-overview-grid">
+            <div class="card card-summary">
+              <div class="card-header">
+                <h3>Loan Statistics / ঋণ বিবরণী</h3>
+              </div>
+              <div class="loan-stats-rows">
+                <div class="stat-row">
+                  <span>Total Capital Disbursed (মোট ঋণ বিতরণ)</span>
+                  <strong class="text-xl" id="loan-stat-disbursed">৳ 2,450,000</strong>
+                </div>
+                <div class="stat-row">
+                  <span>Outstanding Interest (অর্জিত সুদ)</span>
+                  <strong class="text-xl text-warning" id="loan-stat-interest">৳ 185,000</strong>
+                </div>
+                <div class="stat-row">
+                  <span>Active Loan Pledges (বন্ধককৃত বস্তা)</span>
+                  <strong class="text-xl text-blue" id="loan-stat-pledged">12,200 Bags</strong>
+                </div>
+              </div>
+              <div class="card-footer">
+                <button class="btn btn-primary w-full" id="new-loan-btn">
+                  <i data-lucide="hand-coins"></i>
+                  <span>Disburse Dadan Loan</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Loan Calculator Tool -->
+            <div class="card">
+              <div class="card-header">
+                <h3>Dadan Loan Interest Calculator / ঋণ হিসাবকারী</h3>
+                <p class="text-muted text-small">Quickly estimate seasonal interest and storage cost payable at checkout</p>
+              </div>
+              <div class="card-body">
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label for="calc-bags">Number of Bags (বস্তার সংখ্যা)</label>
+                    <input type="number" id="calc-bags" class="form-control" value="100" oninput="app.calculateMockLoan()">
+                  </div>
+                  <div class="form-group">
+                    <label for="calc-loan-per-bag">Loan per Bag (প্রতি বস্তা ঋণ)</label>
+                    <input type="number" id="calc-loan-per-bag" class="form-control" value="300" oninput="app.calculateMockLoan()">
+                  </div>
+                  <div class="form-group">
+                    <label for="calc-rent-per-bag">Storage Rent per Bag (ভাড়া/বস্তা)</label>
+                    <input type="number" id="calc-rent-per-bag" class="form-control" value="250" oninput="app.calculateMockLoan()">
+                  </div>
+                  <div class="form-group">
+                    <label for="calc-months">Months Stored (সংরক্ষণের মেয়াদ)</label>
+                    <input type="number" id="calc-months" class="form-control" value="6" oninput="app.calculateMockLoan()">
+                  </div>
+                  <div class="form-group">
+                    <label for="calc-interest-rate">Interest Rate (% per Season/Year)</label>
+                    <input type="number" id="calc-interest-rate" class="form-control" value="12" oninput="app.calculateMockLoan()">
+                  </div>
+                </div>
+                
+                <div class="calculator-results mt-4">
+                  <div class="result-tile">
+                    <span class="lbl">Principal Loan</span>
+                    <span class="val" id="calc-result-principal">৳ 30,000</span>
+                  </div>
+                  <div class="result-tile">
+                    <span class="lbl">Storage Rent</span>
+                    <span class="val" id="calc-result-rent">৳ 25,000</span>
+                  </div>
+                  <div class="result-tile">
+                    <span class="lbl">Accrued Interest</span>
+                    <span class="val text-warning" id="calc-result-interest">৳ 1,800</span>
+                  </div>
+                  <div class="result-tile highlight">
+                    <span class="lbl">Total Due at Exit</span>
+                    <span class="val" id="calc-result-total">৳ 56,800</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card table-card mt-6">
+            <div class="card-header flex-header">
+              <h3>Active Pledged Dadan Ledger / ঋণ ও দাদন খতিয়ান</h3>
+              <div class="search-box">
+                <i data-lucide="search"></i>
+                <input type="text" id="loan-search" placeholder="Search by Farmer Name or SR..." oninput="app.filterLoans()">
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>SR Code</th>
+                    <th>Farmer Name</th>
+                    <th>Phone</th>
+                    <th>Pledged Bags</th>
+                    <th>Principal Loan</th>
+                    <th>Disbursement Date</th>
+                    <th>Est. Interest</th>
+                    <th>Total Accrued</th>
+                    <th>Status</th>
+                    <th class="text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="loans-tbody">
+                  <!-- JS populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= GATE PASS TAB ================= -->
+        <section id="tab-gatepass" class="tab-pane">
+          <div class="table-actions-bar">
+            <div class="search-box">
+              <i data-lucide="search"></i>
+              <input type="text" id="gatepass-search" placeholder="Search logs by Farmer, Chalan ID, Truck No..." oninput="app.filterGatepass()">
+            </div>
+            <div class="filter-group">
+              <select id="gatepass-filter-type" onchange="app.filterGatepass()">
+                <option value="">All Operations</option>
+                <option value="IN">Gate Entry (IN / আলু জমা)</option>
+                <option value="OUT">Delivery Challan (OUT / খালাস)</option>
+              </select>
+              <button class="btn btn-primary" id="new-chalan-btn">
+                <i data-lucide="plus"></i>
+                <span>Issue Gate Entry / Exit</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="card table-card">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Chalan ID</th>
+                    <th>Type</th>
+                    <th>Date & Time</th>
+                    <th>SR Code</th>
+                    <th>Farmer / Merchant</th>
+                    <th>Bags (বস্তা)</th>
+                    <th>Truck/Veh. No</th>
+                    <th>Labor Cost (কুলি)</th>
+                    <th>Recorded By</th>
+                    <th class="text-right">Receipt</th>
+                  </tr>
+                </thead>
+                <tbody id="gatepass-tbody">
+                  <!-- JS populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= REPORTS & FINANCIALS TAB ================= -->
+        <section id="tab-reports" class="tab-pane">
+          <div class="report-overview-grid">
+            <div class="card card-report-metric">
+              <div class="card-header flex-header">
+                <div>
+                  <h3>Income Statement Breakdown</h3>
+                  <p class="text-muted text-small">Accumulated and forecast balance</p>
+                </div>
+                <button class="btn btn-outline btn-small" id="print-financial-report-btn">
+                  <i data-lucide="printer"></i> Print Statement
+                </button>
+              </div>
+              <div class="balance-sheet">
+                <div class="balance-item">
+                  <div class="lbl-wrap">
+                    <span class="icon-indicator bg-soft-green"><i data-lucide="arrow-down-left"></i></span>
+                    <div>
+                      <h4>Collected Storage Rent</h4>
+                      <p class="text-muted">Realized cash in hand</p>
+                    </div>
+                  </div>
+                  <strong class="text-green" id="report-collected-rent">৳ 1,250,000</strong>
+                </div>
+
+                <div class="balance-item">
+                  <div class="lbl-wrap">
+                    <span class="icon-indicator bg-soft-blue"><i data-lucide="timer"></i></span>
+                    <div>
+                      <h4>Accrued Storage Rent</h4>
+                      <p class="text-muted">Expected payment at exit</p>
+                    </div>
+                  </div>
+                  <strong class="text-blue" id="report-accrued-rent">৳ 8,500,000</strong>
+                </div>
+
+                <div class="balance-item">
+                  <div class="lbl-wrap">
+                    <span class="icon-indicator bg-soft-amber"><i data-lucide="dollar-sign"></i></span>
+                    <div>
+                      <h4>Paid Loan Principal Interest</h4>
+                      <p class="text-muted">Recovered from loans</p>
+                    </div>
+                  </div>
+                  <strong class="text-amber" id="report-recovered-interest">৳ 95,000</strong>
+                </div>
+
+                <div class="balance-item">
+                  <div class="lbl-wrap">
+                    <span class="icon-indicator bg-soft-purple"><i data-lucide="activity"></i></span>
+                    <div>
+                      <h4>Labor Expenses (Kuli Charge)</h4>
+                      <p class="text-muted">Paid to porter teams</p>
+                    </div>
+                  </div>
+                  <strong class="text-purple" id="report-labor-expenses">৳ 325,000</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Business Health Indicators -->
+            <div class="card">
+              <div class="card-header">
+                <h3>Chamber Utilization & Safety Analysis</h3>
+                <p class="text-muted text-small">Current environmental factors and limits</p>
+              </div>
+              <div class="card-body">
+                <div class="chamber-health-bars">
+                  <div class="health-item">
+                    <div class="lbl-row">
+                      <span>Chamber A Capacity (Potatoes)</span>
+                      <span>12,400 / 15,000 Bags</span>
+                    </div>
+                    <div class="progress-bar-container">
+                      <div class="progress-bar bg-green" style="width: 83%"></div>
+                    </div>
+                  </div>
+                  
+                  <div class="health-item">
+                    <div class="lbl-row">
+                      <span>Chamber B Capacity (Potatoes/Onions)</span>
+                      <span>14,100 / 15,000 Bags</span>
+                    </div>
+                    <div class="progress-bar-container">
+                      <div class="progress-bar bg-green" style="width: 94%"></div>
+                    </div>
+                  </div>
+
+                  <div class="health-item">
+                    <div class="lbl-row">
+                      <span>Chamber C Capacity (Seed Potato)</span>
+                      <span>16,000 / 20,000 Bags</span>
+                    </div>
+                    <div class="progress-bar-container">
+                      <div class="progress-bar bg-blue" style="width: 80%"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="alert-box alert-info mt-6">
+                  <i data-lucide="info"></i>
+                  <div>
+                    <strong>Chamber C Defrost Scheduled:</strong>
+                    <p class="text-small text-muted mb-0">System runs fan cycles at 02:00 AM. Monitor humidity sensors closely.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Database Backup and Restore Utility -->
+            <div class="card">
+              <div class="card-header flex-header">
+                <div>
+                  <h3>Database Maintenance / ডাটাবেজ নিয়ন্ত্রণ</h3>
+                  <p class="text-muted text-small">Secured SQLite Database System</p>
+                </div>
+              </div>
+              <div class="card-body">
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                  <p class="text-small text-secondary">Export the current state as a raw SQL snapshot or upload a previous backup file to restore records.</p>
+                  
+                  <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                    <button class="btn btn-primary btn-small" onclick="app.downloadBackup()">
+                      <i data-lucide="download"></i> Download Backup (.db)
+                    </button>
+                    
+                    <button class="btn btn-outline btn-small" onclick="document.getElementById('restore-file-input').click()">
+                      <i data-lucide="upload"></i> Restore Backup (.db)
+                    </button>
+                    <input type="file" id="restore-file-input" style="display: none;" accept=".db" onchange="app.uploadRestore(event)">
+                    
+                    <button class="btn btn-outline btn-small text-danger" onclick="app.resetDatabase()">
+                      <i data-lucide="refresh-cw"></i> Reset Database
+                    </button>
+                  </div>
+                  
+                  <div id="backup-status-text" class="text-small text-muted" style="margin-top: 8px; font-family: var(--font-mono); font-size: 0.75rem;">Last database check: Current Session Connected</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ================= MODALS & OVERLAYS ================= -->
+
+  <!-- Modal: Create Booking (SR) -->
+  <div class="modal-overlay hidden" id="modal-booking">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>Create Storage Receipt Booking (SR)</h2>
+        <button class="btn btn-close modal-close-btn">&times;</button>
+      </div>
+      <form id="form-new-booking">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group col-span-2">
+              <label for="book-farmer-name">Farmer / Merchant Name (কৃষক/ব্যবসায়ীর নাম) *</label>
+              <input type="text" id="book-farmer-name" class="form-control" required placeholder="e.g. Md. Rafiqul Islam">
+            </div>
+            <div class="form-group">
+              <label for="book-phone">Phone Number (মোবাইল নম্বর) *</label>
+              <input type="tel" id="book-phone" class="form-control" required placeholder="e.g. 01712345678">
+            </div>
+            <div class="form-group">
+              <label for="book-nid">NID Card Number (জাতীয় পরিচয়পত্র নম্বর)</label>
+              <input type="text" id="book-nid" class="form-control" placeholder="e.g. 1985269123456">
+            </div>
+            <div class="form-group col-span-2">
+              <label for="book-address">Village / Post Office / Upazila (ঠিকানা)</label>
+              <input type="text" id="book-address" class="form-control" placeholder="e.g. Joypurhat Sadar, Joypurhat">
+            </div>
+            <div class="form-group">
+              <label for="book-crop">Crop / Variety (ফসলের ধরণ) *</label>
+              <select id="book-crop" class="form-control" required>
+                <option value="Cardinal Potato">Cardinal Potato (লাল আলু)</option>
+                <option value="Diamant Potato">Diamant Potato (সাদা আলু)</option>
+                <option value="Granola Potato">Granola Potato (বীজ আলু)</option>
+                <option value="Onion">Onion (পেঁয়াজ)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="book-bags">Number of Bags (বস্তার সংখ্যা) *</label>
+              <input type="number" id="book-bags" class="form-control" required min="1" value="100">
+            </div>
+            <div class="form-group">
+              <label for="book-chamber">Target Chamber *</label>
+              <select id="book-chamber" class="form-control" required>
+                <option value="Chamber-01">Chamber 01</option>
+                <option value="Chamber-02">Chamber 02</option>
+                <option value="Chamber-03">Chamber 03</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="book-rack">Rack / Row Assignment *</label>
+              <select id="book-rack" class="form-control" required>
+                <option value="R-01">Rack 01</option>
+                <option value="R-02">Rack 02</option>
+                <option value="R-03">Rack 03</option>
+                <option value="R-04">Rack 04</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="book-rent-rate">Rent Rate per Bag (৳ / Season)</label>
+              <input type="number" id="book-rent-rate" class="form-control" value="250">
+            </div>
+            <div class="form-group">
+              <label for="book-advance">Advance Paid (অগ্রিম জমা)</label>
+              <input type="number" id="book-advance" class="form-control" value="0">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-close-btn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Generate SR & Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Disburse Loan (Dadan) -->
+  <div class="modal-overlay hidden" id="modal-loan">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>Disburse Dadan Loan (ঋণ ও দাদন প্রদান)</h2>
+        <button class="btn btn-close modal-close-btn">&times;</button>
+      </div>
+      <form id="form-new-loan">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group col-span-2">
+              <label for="loan-sr-code">Select Storage Receipt (SR Book) *</label>
+              <select id="loan-sr-code" class="form-control" required onchange="app.onLoanSRSelect()">
+                <!-- JS Populated -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="loan-farmer-name">Farmer Name (readonly)</label>
+              <input type="text" id="loan-farmer-name" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+              <label for="loan-pledged-bags">Pledged Bags (readonly)</label>
+              <input type="number" id="loan-pledged-bags" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+              <label for="loan-principal">Loan Amount (৳ ঋণ পরিমাণ) *</label>
+              <input type="number" id="loan-principal" class="form-control" required min="100" placeholder="e.g. 20000">
+              <span class="text-small text-muted" id="loan-limit-warning">Max recommended: ৳30,000 (৳300/bag)</span>
+            </div>
+            <div class="form-group">
+              <label for="loan-interest-rate">Seasonal Interest Rate (%)</label>
+              <input type="number" id="loan-interest-rate" class="form-control" value="12" min="0">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-close-btn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Disburse Cash & Pledge Stock</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Gate Entry / Delivery (Chalan) -->
+  <div class="modal-overlay hidden" id="modal-chalan">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>Gate Entry & Delivery Chalan / গেট পাস</h2>
+        <button class="btn btn-close modal-close-btn">&times;</button>
+      </div>
+      <form id="form-new-chalan">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="chalan-type">Operation Type *</label>
+              <select id="chalan-type" class="form-control" required onchange="app.onChalanTypeSelect()">
+                <option value="IN">Gate Entry (IN - জমা)</option>
+                <option value="OUT">Delivery Challan (OUT - খালাস)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="chalan-sr-code">Storage Receipt (SR Code) *</label>
+              <select id="chalan-sr-code" class="form-control" required onchange="app.onChalanSRSelect()">
+                <!-- JS Populated -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="chalan-farmer-name">Farmer Name (readonly)</label>
+              <input type="text" id="chalan-farmer-name" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+              <label for="chalan-available-bags">Stored/Available Bags (readonly)</label>
+              <input type="number" id="chalan-available-bags" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+              <label for="chalan-bags">Bags Transferring (বস্তার পরিমাণ) *</label>
+              <input type="number" id="chalan-bags" class="form-control" required min="1" value="50">
+            </div>
+            <div class="form-group">
+              <label for="chalan-truck">Vehicle / Cart Number (গাড়ি নম্বর)</label>
+              <input type="text" id="chalan-truck" class="form-control" placeholder="e.g. ঢাকা মেট্রো-ট ১১-২২৩৩">
+            </div>
+            <div class="form-group">
+              <label for="chalan-labor-charge">Labor Charge per Bag (৳ কুলি খরচ)</label>
+              <input type="number" id="chalan-labor-charge" class="form-control" value="8">
+            </div>
+            <div class="form-group">
+              <label for="chalan-operator">Operator Name</label>
+              <input type="text" id="chalan-operator" class="form-control" value="Abu Zannat">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-close-btn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Process Gate Pass</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Release Storage & Calculate Bill -->
+  <div class="modal-overlay hidden" id="modal-release">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>Release Stock & Settle Ledger / মাল খালাস ও বিল পরিশোধ</h2>
+        <button class="btn btn-close modal-close-btn">&times;</button>
+      </div>
+      <form id="form-settle-release">
+        <div class="modal-body">
+          <input type="hidden" id="release-sr-code">
+          
+          <div class="bill-summary-card">
+            <h3 class="mb-4 text-emerald font-bold">Ledger Balance Statement</h3>
+            
+            <div class="bill-grid">
+              <div class="bill-row">
+                <span>Farmer Name:</span>
+                <strong id="release-lbl-farmer">Md. Rafiqul</strong>
+              </div>
+              <div class="bill-row">
+                <span>SR Code:</span>
+                <strong id="release-lbl-sr">SR-2026-001</strong>
+              </div>
+              <div class="bill-row">
+                <span>Stored Bags:</span>
+                <strong id="release-lbl-bags">100 Bags</strong>
+              </div>
+              <div class="bill-row divider"></div>
+              
+              <div class="bill-row">
+                <span>Storage Rent Due:</span>
+                <strong id="release-val-rent">৳ 25,000</strong>
+              </div>
+              <div class="bill-row">
+                <span>Dadan Loan Principal:</span>
+                <strong id="release-val-loan">৳ 30,000</strong>
+              </div>
+              <div class="bill-row">
+                <span>Loan Interest Accrued:</span>
+                <strong id="release-val-interest" class="text-warning">৳ 1,800</strong>
+              </div>
+              <div class="bill-row">
+                <span>Advance Paid:</span>
+                <strong id="release-val-advance" class="text-green">- ৳ 2,000</strong>
+              </div>
+              <div class="bill-row divider"></div>
+              
+              <div class="bill-row total">
+                <span>Total Amount Payable (মোট পরিশোধযোগ্য):</span>
+                <strong id="release-val-total">৳ 54,800</strong>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-grid mt-4">
+            <div class="form-group">
+              <label for="release-payment-mode">Payment Mode *</label>
+              <select id="release-payment-mode" class="form-control" required>
+                <option value="Cash">Cash (নগদ)</option>
+                <option value="Bank Transfer">Bank Transfer (ব্যাংক ট্রান্সফার)</option>
+                <option value="bKash / Nagad">Mobile Banking (বিকাশ/নগদ)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="release-amount-paid">Amount Paid (৳ আদায়কৃত টাকা) *</label>
+              <input type="number" id="release-amount-paid" class="form-control" required min="0">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-close-btn">Cancel</button>
+          <button type="submit" class="btn btn-success">Complete Settlement & Release</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Printable Receipt Viewer (Print Preview) -->
+  <div class="modal-overlay hidden" id="modal-print-preview">
+    <div class="modal-card print-modal-card">
+      <div class="modal-header no-print">
+        <h2>Print Document Preview</h2>
+        <div class="print-actions">
+          <button class="btn btn-primary" onclick="window.print()">
+            <i data-lucide="printer"></i> Print / প্রিন্ট
+          </button>
+          <button class="btn btn-close modal-close-btn">&times;</button>
+        </div>
+      </div>
+      <div class="modal-body printable-area" id="print-content">
+        <!-- JS generated printable layouts go here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- App Main Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>
