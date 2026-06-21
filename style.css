@@ -541,6 +541,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .progress-bar.bg-green { background-color: var(--accent-green); }
 .progress-bar.bg-blue { background-color: var(--accent-blue); }
+.progress-bar.bg-red { background-color: var(--accent-red); }
 
 /* ================= CHARTS GRID ================= */
 .dashboard-grid {
@@ -763,6 +764,24 @@ h1, h2, h3, h4, h5, h6 {
   background: linear-gradient(135deg, var(--bg-hover) 0%, var(--bg-secondary) 100%);
   border-color: var(--accent-green);
   box-shadow: 0 0 0 1px var(--accent-green-glow);
+}
+
+.btn-delete-chamber {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.btn-delete-chamber:hover {
+  color: var(--accent-red) !important;
+  background-color: rgba(239, 68, 68, 0.15) !important;
 }
 
 .chamber-info h4 {

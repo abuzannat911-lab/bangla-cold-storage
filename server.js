@@ -306,6 +306,78 @@ app.post('/api/ventilation', (req, res) => {
     }
 });
 
+// POST Chambers (Add Chamber)
+app.post('/api/chambers', (req, res) => {
+    try {
+        const { id, name, capacity, racksCount, temp, humidity } = req.body;
+        const data = loadData();
+
+        // Check if exists
+        if (data.chambers.some(c => c.id === id)) {
+            return res.status(400).json({ error: "Chamber ID already exists" });
+        }
+
+        // Add chamber
+        data.chambers.push({
+            id,
+            name,
+            temp: parseFloat(temp),
+            humidity: parseFloat(humidity),
+            capacity: parseInt(capacity)
+        });
+
+        // Add racks
+        const rCount = parseInt(racksCount);
+        const rackCap = Math.floor(parseInt(capacity) / rCount);
+        for (let i = 1; i <= rCount; i++) {
+            const rackId = `R-${String(i).padStart(2, '0')}`;
+            data.chamber_racks.push({
+                chamberId: id,
+                rackId,
+                name: `Rack ${String(i).padStart(2, '0')}`,
+                stored: 0,
+                capacity: rackCap
+            });
+        }
+
+        saveData(data);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// POST Delete Chamber
+app.post('/api/chambers/delete', (req, res) => {
+    try {
+        const { chamberId } = req.body;
+        const data = loadData();
+
+        // Check active inventory in chamber_racks
+        const racks = data.chamber_racks.filter(r => r.chamberId === chamberId);
+        const activeStored = racks.reduce((sum, r) => sum + r.stored, 0);
+        if (activeStored > 0) {
+            return res.status(400).json({ error: "Cannot delete chamber: active inventory exists in racks." });
+        }
+
+        // Check active bookings in this chamber
+        const activeBooking = data.bookings.some(b => b.chamber === chamberId && b.storedBags > 0);
+        if (activeBooking) {
+            return res.status(400).json({ error: "Cannot delete chamber: active bookings point to this chamber." });
+        }
+
+        // Delete chamber
+        data.chambers = data.chambers.filter(c => c.id !== chamberId);
+        // Delete racks
+        data.chamber_racks = data.chamber_racks.filter(r => r.chamberId !== chamberId);
+
+        saveData(data);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // GET Backup
 app.get('/api/backup', (req, res) => {
     try {

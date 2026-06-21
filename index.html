@@ -180,7 +180,7 @@
                 <div class="progress-bar-container">
                   <div class="progress-bar" style="width: 85%" id="kpi-occupancy-bar"></div>
                 </div>
-                <span class="text-muted text-small">50,000 Bags Max</span>
+                <span class="text-muted text-small" id="kpi-max-capacity-label">50,000 Bags Max</span>
               </div>
             </div>
 
@@ -322,9 +322,14 @@
           <div class="chamber-monitoring-layout">
             <div class="chamber-sidebar">
               <div class="card">
-                <div class="card-header">
-                  <h3>Chamber Selection</h3>
-                  <p class="text-muted text-small">Select a vault to see levels and racks</p>
+                <div class="card-header flex-header">
+                  <div>
+                    <h3>Chamber Selection</h3>
+                    <p class="text-muted text-small">Select a vault to see levels and racks</p>
+                  </div>
+                  <button class="btn btn-primary btn-small" id="open-add-chamber-btn" style="padding: 6px 10px; font-size: 0.75rem;">
+                    <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Add
+                  </button>
                 </div>
                 <div class="chamber-selector-list" id="chamber-list">
                   <!-- JS populated -->
@@ -623,36 +628,8 @@
                 <p class="text-muted text-small">Current environmental factors and limits</p>
               </div>
               <div class="card-body">
-                <div class="chamber-health-bars">
-                  <div class="health-item">
-                    <div class="lbl-row">
-                      <span>Chamber A Capacity (Potatoes)</span>
-                      <span>12,400 / 15,000 Bags</span>
-                    </div>
-                    <div class="progress-bar-container">
-                      <div class="progress-bar bg-green" style="width: 83%"></div>
-                    </div>
-                  </div>
-                  
-                  <div class="health-item">
-                    <div class="lbl-row">
-                      <span>Chamber B Capacity (Potatoes/Onions)</span>
-                      <span>14,100 / 15,000 Bags</span>
-                    </div>
-                    <div class="progress-bar-container">
-                      <div class="progress-bar bg-green" style="width: 94%"></div>
-                    </div>
-                  </div>
-
-                  <div class="health-item">
-                    <div class="lbl-row">
-                      <span>Chamber C Capacity (Seed Potato)</span>
-                      <span>16,000 / 20,000 Bags</span>
-                    </div>
-                    <div class="progress-bar-container">
-                      <div class="progress-bar bg-blue" style="width: 80%"></div>
-                    </div>
-                  </div>
+                <div class="chamber-health-bars" id="chamber-utilization-bars">
+                  <!-- Dynamically populated -->
                 </div>
 
                 <div class="alert-box alert-info mt-6">
@@ -706,6 +683,52 @@
 
   <!-- ================= MODALS & OVERLAYS ================= -->
 
+  <!-- Modal: Add Chamber -->
+  <div class="modal-overlay hidden" id="modal-add-chamber">
+    <div class="modal-card" style="max-width: 500px;">
+      <div class="modal-header">
+        <h2>Add New Storage Chamber (নতুন চেম্বার)</h2>
+        <button class="btn btn-close modal-close-btn">&times;</button>
+      </div>
+      <form id="form-add-chamber">
+        <div class="modal-body">
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div class="form-group">
+              <label for="chamber-new-id">Chamber ID (চেম্বার কোড) *</label>
+              <input type="text" id="chamber-new-id" class="form-control" required placeholder="e.g. Chamber-04">
+            </div>
+            <div class="form-group">
+              <label for="chamber-new-name">Chamber Name & Crop Type (নাম ও ফসলের ধরণ) *</label>
+              <input type="text" id="chamber-new-name" class="form-control" required placeholder="e.g. Chamber 04 (Sweet Potato)">
+            </div>
+            <div class="form-group">
+              <label for="chamber-new-capacity">Total Capacity in Bags (মোট ধারণক্ষমতা) *</label>
+              <input type="number" id="chamber-new-capacity" class="form-control" required min="100" value="10000">
+            </div>
+            <div class="form-group">
+              <label for="chamber-new-racks">Number of Racks to Generate (র্যাক সংখ্যা) *</label>
+              <input type="number" id="chamber-new-racks" class="form-control" required min="1" max="10" value="4">
+            </div>
+            <div style="display: flex; gap: 16px;">
+              <div class="form-group" style="flex: 1;">
+                <label for="chamber-new-temp">Initial Temp (°C)</label>
+                <input type="number" id="chamber-new-temp" class="form-control" required step="0.1" value="2.5">
+              </div>
+              <div class="form-group" style="flex: 1;">
+                <label for="chamber-new-humidity">Initial Humidity (%)</label>
+                <input type="number" id="chamber-new-humidity" class="form-control" required min="50" max="100" value="88">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-close-btn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Chamber</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Modal: Create Booking (SR) -->
   <div class="modal-overlay hidden" id="modal-booking">
     <div class="modal-card">
@@ -748,18 +771,13 @@
             <div class="form-group">
               <label for="book-chamber">Target Chamber *</label>
               <select id="book-chamber" class="form-control" required>
-                <option value="Chamber-01">Chamber 01</option>
-                <option value="Chamber-02">Chamber 02</option>
-                <option value="Chamber-03">Chamber 03</option>
+                <!-- Dynamically populated -->
               </select>
             </div>
             <div class="form-group">
               <label for="book-rack">Rack / Row Assignment *</label>
               <select id="book-rack" class="form-control" required>
-                <option value="R-01">Rack 01</option>
-                <option value="R-02">Rack 02</option>
-                <option value="R-03">Rack 03</option>
-                <option value="R-04">Rack 04</option>
+                <!-- Dynamically populated -->
               </select>
             </div>
             <div class="form-group">

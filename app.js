@@ -148,10 +148,11 @@ class ColdStorageApp {
   // Modal overlays controller
   setupModals() {
     const modalButtons = [
-      { btnId: "quick-booking-btn", modalId: "modal-booking" },
-      { btnId: "new-booking-btn", modalId: "modal-booking" },
+      { btnId: "quick-booking-btn", modalId: "modal-booking", callback: () => this.populateBookingChambers() },
+      { btnId: "new-booking-btn", modalId: "modal-booking", callback: () => this.populateBookingChambers() },
       { btnId: "new-loan-btn", modalId: "modal-loan", callback: () => this.populateLoanFormSRs() },
-      { btnId: "new-chalan-btn", modalId: "modal-chalan", callback: () => this.populateChalanFormSRs() }
+      { btnId: "new-chalan-btn", modalId: "modal-chalan", callback: () => this.populateChalanFormSRs() },
+      { btnId: "open-add-chamber-btn", modalId: "modal-add-chamber" }
     ];
 
     modalButtons.forEach(cfg => {
@@ -172,11 +173,18 @@ class ColdStorageApp {
       });
     });
 
+    // Chamber dynamic change loader
+    const chamberSelect = document.getElementById("book-chamber");
+    if (chamberSelect) {
+      chamberSelect.addEventListener("change", () => this.populateBookingRacks());
+    }
+
     // Form handlers
     document.getElementById("form-new-booking").addEventListener("submit", (e) => this.handleNewBooking(e));
     document.getElementById("form-new-loan").addEventListener("submit", (e) => this.handleNewLoan(e));
     document.getElementById("form-new-chalan").addEventListener("submit", (e) => this.handleNewChalan(e));
     document.getElementById("form-settle-release").addEventListener("submit", (e) => this.handleSettleRelease(e));
+    document.getElementById("form-add-chamber").addEventListener("submit", (e) => this.handleNewChamber(e));
     document.getElementById("print-financial-report-btn").addEventListener("click", () => this.printFinancialReport());
   }
 
@@ -198,7 +206,7 @@ class ColdStorageApp {
   renderDashboard() {
     // 1. Calculate KPI Metrics
     const totalBagsStored = this.state.bookings.reduce((sum, b) => sum + b.storedBags, 0);
-    const maxCapacity = 50000;
+    const maxCapacity = this.state.chambers.reduce((sum, c) => sum + c.capacity, 0);
     const occupancyPercent = maxCapacity > 0 ? Math.round((totalBagsStored / maxCapacity) * 100) : 0;
 
     const totalLoansOutstanding = this.state.loans
@@ -219,6 +227,10 @@ class ColdStorageApp {
     document.getElementById("kpi-total-bags").textContent = totalBagsStored.toLocaleString();
     document.getElementById("kpi-occupancy").textContent = `${occupancyPercent}%`;
     document.getElementById("kpi-occupancy-bar").style.width = `${occupancyPercent}%`;
+    const maxCapLabel = document.getElementById("kpi-max-capacity-label");
+    if (maxCapLabel) {
+      maxCapLabel.textContent = `${maxCapacity.toLocaleString()} Bags Max`;
+    }
     document.getElementById("kpi-total-loans").textContent = `৳ ${totalLoansOutstanding.toLocaleString()}`;
     document.getElementById("kpi-total-revenue").textContent = `৳ ${pendingRent.toLocaleString()}`;
 
@@ -702,7 +714,12 @@ class ColdStorageApp {
       
       item.innerHTML = `
         <div class="chamber-info">
-          <h4>${c.name}</h4>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <h4>${c.name}</h4>
+            <button class="btn-delete-chamber" title="Delete Chamber" onclick="event.stopPropagation(); app.deleteChamber('${c.id}')">
+              <i data-lucide="trash-2" style="width:14px; height:14px;"></i>
+            </button>
+          </div>
           <p>${occupied.toLocaleString()} / ${c.capacity.toLocaleString()} Bags (${occupancy}%)</p>
         </div>
         <div class="chamber-status-indicator">
@@ -714,6 +731,9 @@ class ColdStorageApp {
       `;
       listContainer.appendChild(item);
     });
+
+    // Re-bind Lucide icons for dynamic items
+    lucide.createIcons();
 
     this.renderRackGrid();
   }
@@ -1296,6 +1316,29 @@ class ColdStorageApp {
     document.getElementById("report-accrued-rent").textContent = `৳ ${accruedRent.toLocaleString()}`;
     document.getElementById("report-recovered-interest").textContent = `৳ ${recoveredTotal.toLocaleString()} (Principal: ৳${recoveredPrincipal.toLocaleString()}, Interest: ৳${recoveredInterest.toLocaleString()})`;
     document.getElementById("report-labor-expenses").textContent = `৳ ${laborCosts.toLocaleString()}`;
+
+    // Render Chamber Utilization & Safety Analysis
+    const healthContainer = document.getElementById("chamber-utilization-bars");
+    if (healthContainer) {
+      healthContainer.innerHTML = "";
+      this.state.chambers.forEach(c => {
+        const occupied = c.racks.reduce((sum, r) => sum + r.stored, 0);
+        const occupancy = c.capacity > 0 ? Math.round((occupied / c.capacity) * 100) : 0;
+        
+        const healthItem = document.createElement("div");
+        healthItem.className = "health-item";
+        healthItem.innerHTML = `
+          <div class="lbl-row">
+            <span>${c.name} Capacity</span>
+            <span>${occupied.toLocaleString()} / ${c.capacity.toLocaleString()} Bags</span>
+          </div>
+          <div class="progress-bar-container">
+            <div class="progress-bar ${occupancy > 90 ? 'bg-red' : occupancy > 70 ? 'bg-blue' : 'bg-green'}" style="width: ${occupancy}%"></div>
+          </div>
+        `;
+        healthContainer.appendChild(healthItem);
+      });
+    }
   }
 
   // ================= DYNAMIC HELPERS & PRINTING =================
@@ -1636,6 +1679,110 @@ class ColdStorageApp {
     }
     // Clear input element
     event.target.value = "";
+  }
+
+  populateBookingChambers() {
+    const chamberSelect = document.getElementById("book-chamber");
+    if (!chamberSelect) return;
+    
+    const selectedChamber = chamberSelect.value;
+    chamberSelect.innerHTML = "";
+    
+    this.state.chambers.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c.id;
+      opt.textContent = c.name;
+      chamberSelect.appendChild(opt);
+    });
+    
+    if (selectedChamber && this.state.chambers.some(c => c.id === selectedChamber)) {
+      chamberSelect.value = selectedChamber;
+    } else if (this.state.chambers.length > 0) {
+      chamberSelect.value = this.state.chambers[0].id;
+    }
+    
+    this.populateBookingRacks();
+  }
+
+  populateBookingRacks() {
+    const chamberSelect = document.getElementById("book-chamber");
+    const rackSelect = document.getElementById("book-rack");
+    if (!chamberSelect || !rackSelect) return;
+    
+    const chamberId = chamberSelect.value;
+    const chamber = this.state.chambers.find(c => c.id === chamberId);
+    
+    rackSelect.innerHTML = "";
+    if (chamber && chamber.racks) {
+      chamber.racks.forEach(r => {
+        const opt = document.createElement("option");
+        opt.value = r.id;
+        opt.textContent = `${r.name} (${r.stored}/${r.capacity} Bags)`;
+        rackSelect.appendChild(opt);
+      });
+    }
+  }
+
+  async handleNewChamber(e) {
+    e.preventDefault();
+    const id = document.getElementById("chamber-new-id").value;
+    const name = document.getElementById("chamber-new-name").value;
+    const capacity = parseInt(document.getElementById("chamber-new-capacity").value);
+    const racksCount = parseInt(document.getElementById("chamber-new-racks").value);
+    const temp = parseFloat(document.getElementById("chamber-new-temp").value);
+    const humidity = parseFloat(document.getElementById("chamber-new-humidity").value);
+
+    try {
+      const res = await this.apiFetch('/api/chambers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, name, capacity, racksCount, temp, humidity })
+      });
+      if (res.ok) {
+        await this.refreshState();
+        this.closeModal("modal-add-chamber");
+        this.renderChambersPanel();
+        this.renderDashboard();
+        document.getElementById("form-add-chamber").reset();
+        
+        confetti({
+          particleCount: 50,
+          colors: ["#10b981", "#3b82f6"]
+        });
+      } else {
+        const err = await res.json();
+        alert("Failed to create chamber: " + (err.error || "Unknown error"));
+      }
+    } catch (err) {
+      alert("Network error: " + err.message);
+    }
+  }
+
+  async deleteChamber(chamberId) {
+    if (confirm(`Are you sure you want to delete chamber '${chamberId}'? This action cannot be undone.`)) {
+      try {
+        const res = await this.apiFetch('/api/chambers/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chamberId })
+        });
+        if (res.ok) {
+          await this.refreshState();
+          if (this.currentChamberId === chamberId) {
+            this.currentChamberId = null;
+          }
+          this.renderChambersPanel();
+          this.renderDashboard();
+          
+          alert("Chamber deleted successfully!");
+        } else {
+          const err = await res.json();
+          alert("Failed to delete chamber: " + (err.error || "Unknown error"));
+        }
+      } catch (err) {
+        alert("Network error: " + err.message);
+      }
+    }
   }
 
   async resetDatabase() {
